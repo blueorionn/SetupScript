@@ -1,0 +1,9 @@
+# Secrets
+.env
+.env.*
+
+# Ignore todo
+todo/
+
+# Ignore temp
+temp/
