@@ -1,6 +1,6 @@
 source "digitalocean" "debian" {
   image     = "debian-12-x64"
-  region    = "nyc3"
+  region    = "blr1"
   size      = "s-1vcpu-1gb"
   ssh_username = "root"
   api_token = "{{env `DO_API_TOKEN`}}"
