@@ -56,13 +56,13 @@ if [[ -f /root/.ssh/authorized_keys ]]; then
 
     # Checking if .ssh directory exist for specified user
     if [[ -d "$USER_HOME/.ssh" ]]; then
-        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moving authorized_keys to specified user."
 
         # Moving authorized_keys 
         mv /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
         chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
         chmod 600 "$USER_HOME/.ssh/authorized_keys"
-
+        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moved authorized_keys to specified user."
+        
     else
         echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - .ssh directory doesn't exist creating new."
 
@@ -73,6 +73,7 @@ if [[ -f /root/.ssh/authorized_keys ]]; then
         mv /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
         chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
         chmod 600 "$USER_HOME/.ssh/authorized_keys"
+        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moved authorized_keys to specified user."
     fi
 else
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
