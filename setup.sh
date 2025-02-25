@@ -100,8 +100,6 @@ if [[ "$1" == "--install" ]]; then
 fi
 
 # Single sudo session for all installations
-su - "$USER_TO_CHECK" << EOF
-    echo "$USER_PASSWORD" | sudo -S apt-get install -y $PACKAGES_TO_INSTALL
-EOF
+su - "$USER_TO_CHECK" -c "echo \"$USER_PASSWORD\" | sudo -S apt-get install -y $PACKAGES_TO_INSTALL"
 
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installation complete."
