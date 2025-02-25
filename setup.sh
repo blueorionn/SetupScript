@@ -10,6 +10,10 @@ else
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
 fi
 
+# Update and upgrade Debian
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
+sudo apt-get update && sudo apt-get upgrade -y
+
 # Checking if user exist
 USER_TO_CHECK="admin"
 USER_HOME="/home/$USER_TO_CHECK"
@@ -97,7 +101,6 @@ fi
 
 # Single sudo session for all installations
 su - "$USER_TO_CHECK" << EOF
-    echo "$USER_PASSWORD" | sudo -S apt-get update -y
     echo "$USER_PASSWORD" | sudo -S apt-get install -y $PACKAGES_TO_INSTALL
 EOF
 
