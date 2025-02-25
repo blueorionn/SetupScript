@@ -62,16 +62,16 @@ if [[ -f /root/.ssh/authorized_keys ]]; then
         chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
         chmod 600 "$USER_HOME/.ssh/authorized_keys"
         echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moved authorized_keys to specified user."
-        
+
     else
         echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - .ssh directory doesn't exist creating new."
 
-        # If .ssh directory doesn't exist
+        # If .ssh directory doesn't exist create new
         mkdir "$USER_HOME/.ssh"
 
         # Moving authorized_keys 
         mv /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
-        chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
+        chown -R $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh"
         chmod 600 "$USER_HOME/.ssh/authorized_keys"
         echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moved authorized_keys to specified user."
     fi
