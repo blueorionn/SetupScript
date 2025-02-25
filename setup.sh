@@ -79,3 +79,7 @@ else
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
     exit 1
 fi
+
+# Installing necessary utilities
+su $USER_TO_CHECK
+sudo apt install curl wget tree htop net-tools git build-essential -y
