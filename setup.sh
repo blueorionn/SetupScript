@@ -23,7 +23,7 @@ if id $USER_TO_CHECK >/dev/null 2>&1; then
         
         # Creating Home directory for specified user
         mkdir -p "$USER_HOME"
-        chown "$USER_TO_CHECK":"$USER_TO_CHECK" "$USER_HOME"
+        chown -R "$USER_TO_CHECK":"$USER_TO_CHECK" "$USER_HOME"
         chmod 700 "$USER_HOME"
 
         echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Home directory for '$USER_TO_CHECK' has been created and configured."
@@ -49,4 +49,32 @@ else
     # Specify user password
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Specify $USER_TO_CHECK passwd."
     passwd $USER_TO_CHECK
+fi
+
+# SSH Configuration
+if [[ -f /root/.ssh/authorized_keys ]]; then
+
+    # Checking if .ssh directory exist for specified user
+    if [[ -d "$USER_HOME/.ssh" ]]; then
+        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Moving authorized_keys to specified user."
+
+        # Moving authorized_keys 
+        mv /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
+        chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
+        chmod 600 "$USER_HOME/.ssh/authorized_keys"
+
+    else
+        echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - .ssh directory doesn't exist creating new."
+
+        # If .ssh directory doesn't exist
+        mkdir "$USER_HOME/.ssh"
+
+        # Moving authorized_keys 
+        mv /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
+        chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
+        chmod 600 "$USER_HOME/.ssh/authorized_keys"
+    fi
+else
+    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
+    exit 1
 fi
