@@ -82,4 +82,7 @@ fi
 
 # Installing necessary utilities
 su $USER_TO_CHECK
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing necessary utilities."
 sudo apt install curl wget tree htop net-tools git build-essential -y
+
+# Installing specified utilities
