@@ -45,4 +45,8 @@ else
     # Adding user to sudoers group
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Adding $USER_TO_CHECK to sudoers group."
     usermod -aG sudo $USER_TO_CHECK
+
+    # Specify user password
+    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Specify $USER_TO_CHECK passwd."
+    passwd $USER_TO_CHECK
 fi
