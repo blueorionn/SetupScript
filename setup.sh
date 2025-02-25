@@ -83,6 +83,24 @@ fi
 # Installing necessary utilities
 su $USER_TO_CHECK
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing necessary utilities."
-sudo apt install curl wget tree htop net-tools git build-essential -y
+sudo apt-get install curl wget tree htop net-tools git build-essential -y
 
 # Installing specified utilities
+if [[ "$1" == "--install" ]]; then
+    shift  # Remove "--install" from arguments
+
+    if [[ $# -eq 0 ]]; then
+        echo "[ERROR] No packages specified for installation."
+        exit 1
+    fi
+
+    echo "[INFO] Installing packages: $@"
+    
+    # Loop through all provided packages
+    for package in "$@"; do
+        echo "[INFO] Installing: $package"
+        # Uncomment the below line to actually install the packages
+        sudo apt-get install -y "$package"
+    done
+
+    echo "[INFO] Installation complete."
