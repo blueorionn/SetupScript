@@ -1,10 +1,19 @@
-# Custom Cloud Images Repository
+# Admin Setup Script for Debian
 
-This repository contains pre-configured custom images for various cloud providers like **DigitalOcean, AWS, and others**. Each image is designed for a specific use case, such as security-hardened servers, developer environments, or lightweight minimal installations.
+This script automates the setup of a new `admin` user on a Debian-based system, ensuring secure SSH access and installing essential utilities.
 
-## 📌 Features
+## Purpose
 
-- **Custom Users**: Non-sudo `admin` user with SSH access.
-- **Pre-installed Software**: Option to include common packages like `Docker`, `Nginx`, or `Python`.
-- **Automated Image Creation**: Uses **Packer** for reproducibility.
-- **Cloud Support**: Supports **DigitalOcean, AWS (EC2 AMI), and raw disk images**.
+- Create a new `admin` user with home directory.
+- Configures SSH access with proper permissions.
+- Add `admin` user to the sudoers group.
+- Install necessary utilities like `curl`, `wget`, `tree`, `htop`, `net-tools`, `git`, `build-essential`, etc.
+- Supports additional package installation via script arguments, such as `python-env`, `nodejs`, `npm`, `apache`, `nginx`, etc.
+
+## Usage
+
+Run the script on a Debian system:
+
+```bash
+./setup.sh [additional_packages...]
+```
