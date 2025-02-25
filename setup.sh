@@ -77,30 +77,28 @@ if [[ -f /root/.ssh/authorized_keys ]]; then
     fi
 else
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
-    exit 1
 fi
 
-# Installing necessary utilities
-su $USER_TO_CHECK
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing necessary utilities."
-sudo apt-get install curl wget tree htop net-tools git build-essential -y
+# Install packages
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
+echo -n "[INPUT] Enter $USER_TO_CHECK password: "
+read -rs USER_PASSWORD
+echo ""
 
-# Installing specified utilities
+# Base packages
+DEFAULT_PACKAGES="curl wget tree htop net-tools git build-essential"
+PACKAGES_TO_INSTALL="$DEFAULT_PACKAGES"
+
+# Append additional packages if --install is used
 if [[ "$1" == "--install" ]]; then
-    shift  # Remove "--install" from arguments
+    shift
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $*"
+fi
 
-    if [[ $# -eq 0 ]]; then
-        echo "[ERROR] No packages specified for installation."
-        exit 1
-    fi
+# Single sudo session for all installations
+su - "$USER_TO_CHECK" << EOF
+    echo "$USER_PASSWORD" | sudo -S apt-get update -y
+    echo "$USER_PASSWORD" | sudo -S apt-get install -y $PACKAGES_TO_INSTALL
+EOF
 
-    echo "[INFO] Installing packages: $@"
-    
-    # Loop through all provided packages
-    for package in "$@"; do
-        echo "[INFO] Installing: $package"
-        # Uncomment the below line to actually install the packages
-        sudo apt-get install -y "$package"
-    done
-
-    echo "[INFO] Installation complete."
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installation complete."
