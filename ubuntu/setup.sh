@@ -36,15 +36,28 @@ if id $USER_TO_CHECK >/dev/null 2>&1; then
 
 else
     echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - User $USER_TO_CHECK doesn't exist."
+
+    # Check if admin group exists
+    if getent group $USER_TO_CHECK >/dev/null; then
+        echo "[INFO] Using existing '$USER_TO_CHECK' group"
+        GROUP_OPTION="-g $USER_TO_CHECK"
+    else
+        GROUP_OPTION=""
+    fi
+
+    # Creating user with proper group handling
+    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Creating $USER_TO_CHECK user."
+    useradd -m -s /bin/bash $GROUP_OPTION $USER_TO_CHECK
     
-    # Creating user
-    useradd -m -s /bin/bash $USER_TO_CHECK
+    # Verify user creation before proceeding
+    if ! id $USER_TO_CHECK >/dev/null 2>&1; then
+        echo "[ERROR] Failed to create user $USER_TO_CHECK"
+        exit 1
+    fi
+
     chown -R $USER_TO_CHECK:$USER_TO_CHECK $USER_HOME
     chmod 700 $USER_HOME
-    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - User created."
-    usermod -aG sudo $USER_TO_CHECK
-    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Specify $USER_TO_CHECK password:"
-    passwd $USER_TO_CHECK
+    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - $USER_TO_CHECK user created."
 fi
 
 # SSH Configuration
