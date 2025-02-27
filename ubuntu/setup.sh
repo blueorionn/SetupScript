@@ -33,37 +33,51 @@ if id $USER_TO_CHECK >/dev/null 2>&1; then
     else
         echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Home directory exists."
     fi
-
+    
 else
     echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - User $USER_TO_CHECK doesn't exist."
 
-    # Create user with password prompt
-    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Creating $USER_TO_CHECK user."
-    
-    # Prompt for password
-    echo -n "Enter password for $USER_TO_CHECK: "
-    read -s USER_PASSWORD
-    echo ""
-    
-    # Create user with password
-    useradd -m -s /bin/bash $USER_TO_CHECK
-    echo "$USER_TO_CHECK:$USER_PASSWORD" | chpasswd
-    
-    # Add to sudo group
-    usermod -aG sudo $USER_TO_CHECK
-    
-    # Verify sudo privileges
-    if groups $USER_TO_CHECK | grep -q '\bsudo\b'; then
-        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - User added to sudo group successfully."
+    # Check if 'admin' group exists
+    if getent group $USER_TO_CHECK >/dev/null; then
+        echo "[INFO] Using existing '$USER_TO_CHECK' group for user creation"
+        GROUP_OPTION="-g $USER_TO_CHECK"
     else
-        echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Failed to add user to sudo group."
+        GROUP_OPTION=""
+    fi
+
+    # Create user with proper group assignment
+    if ! useradd -m -s /bin/bash $GROUP_OPTION $USER_TO_CHECK; then
+        echo "[ERROR] Failed to create user $USER_TO_CHECK"
+        exit 1
+    fi
+
+    # Verify user exists before proceeding
+    if ! id $USER_TO_CHECK >/dev/null 2>&1; then
+        echo "[ERROR] User $USER_TO_CHECK not found after creation attempt"
+        exit 1
+    fi
+
+    # Set password interactively
+    echo "Set password for $USER_TO_CHECK:"
+    passwd $USER_TO_CHECK
+
+    # Add to sudo group
+    if ! usermod -aG sudo $USER_TO_CHECK; then
+        echo "[ERROR] Failed to add user to sudo group"
+        exit 1
+    fi
+
+    # Verify group membership
+    if groups $USER_TO_CHECK | grep -q '\bsudo\b'; then
+        echo "[INFO] User successfully added to sudo group"
+    else
+        echo "[ERROR] User not in sudo group"
         exit 1
     fi
 
     # Set home directory permissions
     chown -R $USER_TO_CHECK:$USER_TO_CHECK $USER_HOME
     chmod 700 $USER_HOME
-    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - User created and configured."
 fi
 
 # SSH Configuration
