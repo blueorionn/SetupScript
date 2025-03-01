@@ -8,7 +8,18 @@ if [[ ! -f /etc/debian_version ]]; then
     exit 1
 else
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
+
+    # This script is only intented to run on debian v12.
+    echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking debian version..."
+    DEBIAN_VERSION=$(cat /etc/debian_version)
+    if [[ "$DEBIAN_VERSION" == 12.* ]]; then
+        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Debian version $DEBIAN_VERSION detected executing script."
+    else
+        echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script is only intended for running in Debian 12.x."
+        exit 1
+    fi
 fi
+
 
 # Update and upgrade Debian
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
