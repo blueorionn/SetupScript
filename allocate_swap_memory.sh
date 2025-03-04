@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# A swap file acts as virtual memory, allowing your system to use disk storage when RAM is full. 
+# It helps prevent crashes and keeps your system running smoothly, even when RAM is exhausted.
+# This script can be used to generate such a swap file.
+
 # Check if the script is running with sudo (root privileges)
 if [[ $EUID -ne 0 ]]; then
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script must be run with sudo or as root."
