@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if the script is running with sudo (root privileges)
+if [[ $EUID -ne 0 ]]; then
+    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script must be run with sudo or as root."
+    exit 1
+fi
+
 # Check if the system is running Ubuntu
 echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system OS"
 
