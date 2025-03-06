@@ -10,7 +10,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Check if the system is running Debian
+# Check if the system is running Ubuntu
 echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system os"
 
 if ! grep -qi 'ubuntu' /etc/os-release; then
@@ -20,8 +20,8 @@ else
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Ubuntu."
 fi
 
-# Update and upgrade Debian
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
+# Update and upgrade Ubuntu
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Ubuntu."
 sudo apt-get update && sudo apt-get upgrade -y
 
 # Check for existing swapfile
