@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) 2025-present, Swadhin
+# E.g. bash setup.sh
+# E.g. bash setup.sh --install PACKAGE-1,PACKAGE-2
 
 # Check if the script is running with sudo (root privileges)
 if [[ $EUID -ne 0 ]]; then

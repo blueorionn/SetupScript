@@ -1,8 +1,8 @@
 #!/bin/bash
+# Copyright (c) 2025-present, Swadhin
 
 # A swap file acts as virtual memory, allowing your system to use disk storage when RAM is full. 
-# It helps prevent crashes and keeps your system running smoothly, even when RAM is exhausted.
-# This script can be used to generate such a swap file.
+# E.g. bash allocate_swap_memory.sh MEMORY-IN-GB
 
 # Check if the script is running with sudo (root privileges)
 if [[ $EUID -ne 0 ]]; then

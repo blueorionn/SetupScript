@@ -15,5 +15,5 @@ This script automates the setup of a new `admin` user on a Debian-based system, 
 Run the script on a Debian system:
 
 ```bash
-./setup.sh --install [additional_packages...]
+bash setup.sh --install [additional_packages...]
 ```
