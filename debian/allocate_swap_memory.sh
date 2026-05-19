@@ -30,10 +30,6 @@ else
     fi
 fi
 
-# Update and upgrade Debian
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
-sudo apt-get update && sudo apt-get upgrade -y
-
 # Check for existing swapfile
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Checking for existing swap file."
 sudo swapon --show

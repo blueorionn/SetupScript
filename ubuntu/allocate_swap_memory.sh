@@ -20,10 +20,6 @@ else
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Ubuntu."
 fi
 
-# Update and upgrade Ubuntu
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Ubuntu."
-sudo apt-get update && sudo apt-get upgrade -y
-
 # Check for existing swapfile
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Checking for existing swap file."
 sudo swapon --show
