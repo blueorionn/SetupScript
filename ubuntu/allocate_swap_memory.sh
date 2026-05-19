@@ -63,7 +63,7 @@ echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Enable Swap File"
 sudo swapon "$FILE_PATH"
 
 # Make Swap Persistent Across Reboots
-echo "\"$FILE_PATH\" none swap sw 0 0" | sudo tee -a /etc/fstab
+echo "$FILE_PATH none swap sw 0 0" | sudo tee -a /etc/fstab
 
 # verifying swapfile
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Verifying Swapfile"
