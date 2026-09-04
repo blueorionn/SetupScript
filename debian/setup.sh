@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Copyright (c) 2025-present, Swadhin
 # E.g. bash setup.sh
 # E.g. bash setup.sh -u USERNAME -i PACKAGE-1 PACKAGE-2
@@ -18,7 +19,7 @@ PACKAGES_TO_INSTALL="$DEFAULT_PACKAGES"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -u|--user)
-            if [[ -z "$2" || "$2" == -* ]]; then
+            if [[ -z "${2:-}" ]]; then
                 echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Option -u requires a username."
                 exit 1
             fi
@@ -30,13 +31,16 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -i|--install)
-            if [[ $# -lt 2 ]]; then
+            if [[ $# -lt 2 || "${2:-}" == -* ]]; then
                 echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Option -i requires at least one package name."
                 exit 1
             fi
             shift
-            PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ${*//,/ }"
-            break
+            # Consume packages until the next flag, so flags can come in any order
+            while [[ $# -gt 0 && "$1" != -* ]]; do
+                PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ${1//,/ }"
+                shift
+            done
             ;;
         *)
             echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Unknown argument: $1"
@@ -52,24 +56,24 @@ echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system os"
 if [[ ! -f /etc/debian_version ]]; then
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This system is not running Debian."
     exit 1
-else
-    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
-
-    # This script is only intented to run on debian v12.
-    echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking debian version..."
-    DEBIAN_VERSION=$(cat /etc/debian_version)
-    if [[ "$DEBIAN_VERSION" == 12.* ]]; then
-        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Debian version $DEBIAN_VERSION detected executing script."
-    else
-        echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script is only intended for running in Debian 12.x."
-        exit 1
-    fi
 fi
 
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
+
+# This script is only intented to run on debian v12.
+echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking debian version..."
+DEBIAN_VERSION=$(cat /etc/debian_version)
+
+if [[ "$DEBIAN_VERSION" != 12.* ]]; then
+    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script is only intended for running in Debian 12.x."
+    exit 1
+fi
+
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Debian version $DEBIAN_VERSION detected executing script."
 
 # Update and upgrade Debian
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
-sudo apt-get update && sudo apt-get upgrade -y
+apt-get update && apt-get upgrade -y
 
 # Checking if user exist
 USER_HOME="/home/$USER_TO_CHECK"
@@ -98,7 +102,6 @@ else
     # Creating specified user with home directory and bash shell
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Creating $USER_TO_CHECK user."
     useradd -m -s /bin/bash $USER_TO_CHECK
-    chown -R $USER_TO_CHECK:$USER_TO_CHECK $USER_HOME
     chmod 700 $USER_HOME
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - $USER_TO_CHECK user created."
 
@@ -108,42 +111,26 @@ else
 
     # Specify user password
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Specify $USER_TO_CHECK passwd."
-    passwd $USER_TO_CHECK
+    passwd "$USER_TO_CHECK" || echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - Password not set for $USER_TO_CHECK."
 fi
 
 # SSH Configuration
 if [[ -f /root/.ssh/authorized_keys ]]; then
 
-    # Checking if .ssh directory exist for specified user
-    if [[ -d "$USER_HOME/.ssh" ]]; then
-
-        # Copying authorized_keys 
-        cp /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
-        chown $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh/authorized_keys"
-        chmod 600 "$USER_HOME/.ssh/authorized_keys"
-        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Copied authorized_keys to specified user."
-
-    else
-        echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - .ssh directory doesn't exist creating new."
-
-        # If .ssh directory doesn't exist create new
-        mkdir "$USER_HOME/.ssh"
-        chmod 700 "$USER_HOME/.ssh"
-
-        # Copying authorized_keys 
-        cp /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
-        chown -R $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh"
-        chmod 600 "$USER_HOME/.ssh/authorized_keys"
-        echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Copied authorized_keys to specified user."
-    fi
+    # Copying authorized_keys (mkdir -p is a no-op if .ssh already exists)
+    mkdir -p "$USER_HOME/.ssh"
+    cp /root/.ssh/authorized_keys "$USER_HOME/.ssh/authorized_keys"
+    chown -R $USER_TO_CHECK:$USER_TO_CHECK "$USER_HOME/.ssh"
+    chmod 700 "$USER_HOME/.ssh"
+    chmod 600 "$USER_HOME/.ssh/authorized_keys"
+    echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Copied authorized_keys to specified user."
 else
-    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
+    echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
 fi
 
 # Install packages
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
 
-# Install packages directly (script is already running as root)
 apt-get install -y $PACKAGES_TO_INSTALL
 
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installation complete."
