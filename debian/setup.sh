@@ -1,13 +1,50 @@
 #!/bin/bash
 # Copyright (c) 2025-present, Swadhin
 # E.g. bash setup.sh
-# E.g. bash setup.sh --install PACKAGE-1,PACKAGE-2
+# E.g. bash setup.sh -u USERNAME -i PACKAGE-1 PACKAGE-2
 
 # Check if the script is running with sudo (root privileges)
 if [[ $EUID -ne 0 ]]; then
     echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script must be run with sudo or as root."
     exit 1
 fi
+
+# Default values
+USER_TO_CHECK="admin"
+DEFAULT_PACKAGES="curl wget tree htop net-tools git build-essential"
+PACKAGES_TO_INSTALL="$DEFAULT_PACKAGES"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -u|--user)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Option -u requires a username."
+                exit 1
+            fi
+            if ! [[ "$2" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Invalid username: $2"
+                exit 1
+            fi
+            USER_TO_CHECK="$2"
+            shift 2
+            ;;
+        -i|--install)
+            if [[ $# -lt 2 ]]; then
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Option -i requires at least one package name."
+                exit 1
+            fi
+            shift
+            PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ${*//,/ }"
+            break
+            ;;
+        *)
+            echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Unknown argument: $1"
+            echo "[INFO] Usage: bash setup.sh [-u USERNAME] [-i PACKAGE-1 PACKAGE-2 ...]"
+            exit 1
+            ;;
+    esac
+done
 
 # Check if the system is running Debian
 echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system os"
@@ -35,7 +72,6 @@ echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
 sudo apt-get update && sudo apt-get upgrade -y
 
 # Checking if user exist
-USER_TO_CHECK="admin"
 USER_HOME="/home/$USER_TO_CHECK"
 
 if id $USER_TO_CHECK >/dev/null 2>&1; then
@@ -106,16 +142,6 @@ fi
 
 # Install packages
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
-
-# Base packages
-DEFAULT_PACKAGES="curl wget tree htop net-tools git build-essential"
-PACKAGES_TO_INSTALL="$DEFAULT_PACKAGES"
-
-# Append additional packages if --install is used
-if [[ "$1" == "--install" ]]; then
-    shift
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $*"
-fi
 
 # Install packages directly (script is already running as root)
 apt-get install -y $PACKAGES_TO_INSTALL
