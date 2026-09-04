@@ -105,9 +105,6 @@ fi
 
 # Install packages
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
-echo -n "[INPUT] Enter $USER_TO_CHECK password: "
-read -rs USER_PASSWORD
-echo ""
 
 # Base packages
 DEFAULT_PACKAGES="curl wget tree htop net-tools git build-essential"
@@ -119,7 +116,7 @@ if [[ "$1" == "--install" ]]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $*"
 fi
 
-# Single sudo session for all installations
-su - "$USER_TO_CHECK" -c "echo \"$USER_PASSWORD\" | sudo -S apt-get install -y $PACKAGES_TO_INSTALL"
+# Install packages directly (script is already running as root)
+apt-get install -y $PACKAGES_TO_INSTALL
 
 echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installation complete."
