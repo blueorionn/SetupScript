@@ -11,26 +11,42 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Check if the system is running Debian
+# Check if the system is a supported Debian or Ubuntu release
 echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system os"
 
-if [[ ! -f /etc/debian_version ]]; then
-    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This system is not running Debian."
+if [[ ! -r /etc/os-release ]]; then
+    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Cannot detect OS: /etc/os-release not found."
     exit 1
 fi
 
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
+. /etc/os-release
 
-# This script is only intented to run on debian v12.
-echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking debian version..."
-DEBIAN_VERSION=$(cat /etc/debian_version)
+case "${ID:-}" in
+    debian)
+        case "${VERSION_ID:-}" in
+            9|10|11|12|13) OS_INFO="Debian $VERSION_ID" ;;
+            *)
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Debian ${VERSION_ID:-unknown} is not supported. Supported: 9-13."
+                exit 1
+                ;;
+        esac
+        ;;
+    ubuntu)
+        case "${VERSION_ID:-}" in
+            16.04|18.04|20.04|22.04|24.04|26.04) OS_INFO="Ubuntu $VERSION_ID" ;;
+            *)
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Ubuntu ${VERSION_ID:-unknown} is not supported. Supported LTS: 16.04-26.04."
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Unsupported distribution '${ID:-unknown}'. Only Debian and Ubuntu are supported."
+        exit 1
+        ;;
+esac
 
-if [[ "$DEBIAN_VERSION" != 12.* ]]; then
-    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script is only intended for running in Debian 12.x."
-    exit 1
-fi
-
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Debian version $DEBIAN_VERSION detected executing script."
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - $OS_INFO detected executing script."
 
 # Swap file location
 PARENT_FOLDER="/swaps"

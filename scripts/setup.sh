@@ -12,7 +12,7 @@ fi
 
 # Default values
 USER_TO_CHECK="admin"
-DEFAULT_PACKAGES="curl wget tree htop net-tools git build-essential"
+DEFAULT_PACKAGES="sudo curl wget tree htop net-tools git build-essential"
 PACKAGES_TO_INSTALL="$DEFAULT_PACKAGES"
 
 # Parse arguments
@@ -50,30 +50,50 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if the system is running Debian
+# Check if the system is a supported Debian or Ubuntu release
 echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking system os"
 
-if [[ ! -f /etc/debian_version ]]; then
-    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This system is not running Debian."
+if [[ ! -r /etc/os-release ]]; then
+    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Cannot detect OS: /etc/os-release not found."
     exit 1
 fi
 
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - System is running Debian."
+. /etc/os-release
 
-# This script is only intented to run on debian v12.
-echo "[LOG] $(date +"%Y-%m-%d %H:%M:%S") - Checking debian version..."
-DEBIAN_VERSION=$(cat /etc/debian_version)
+case "${ID:-}" in
+    debian)
+        case "${VERSION_ID:-}" in
+            9|10|11|12|13) OS_INFO="Debian $VERSION_ID" ;;
+            *)
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Debian ${VERSION_ID:-unknown} is not supported. Supported: 9-13."
+                exit 1
+                ;;
+        esac
+        ;;
+    ubuntu)
+        case "${VERSION_ID:-}" in
+            16.04|18.04|20.04|22.04|24.04|26.04) OS_INFO="Ubuntu $VERSION_ID" ;;
+            *)
+                echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Ubuntu ${VERSION_ID:-unknown} is not supported. Supported LTS: 16.04-26.04."
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - Unsupported distribution '${ID:-unknown}'. Only Debian and Ubuntu are supported."
+        exit 1
+        ;;
+esac
 
-if [[ "$DEBIAN_VERSION" != 12.* ]]; then
-    echo "[ERROR] $(date +"%Y-%m-%d %H:%M:%S") - This script is only intended for running in Debian 12.x."
-    exit 1
-fi
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - $OS_INFO detected executing script."
 
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Debian version $DEBIAN_VERSION detected executing script."
-
-# Update and upgrade Debian
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading Debian."
+# Update and upgrade the system
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Updating and Upgrading the system."
 apt-get update && apt-get upgrade -y
+
+# Install packages (before user setup so sudo is available on minimal installs)
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
+apt-get install -y $PACKAGES_TO_INSTALL
 
 # Checking if user exist
 USER_HOME="/home/$USER_TO_CHECK"
@@ -101,7 +121,12 @@ else
 
     # Creating specified user with home directory and bash shell
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Creating $USER_TO_CHECK user."
-    useradd -m -s /bin/bash $USER_TO_CHECK
+    if getent group "$USER_TO_CHECK" >/dev/null; then
+        # A group with this name already exists, reuse it
+        useradd -m -s /bin/bash -g "$USER_TO_CHECK" "$USER_TO_CHECK"
+    else
+        useradd -m -s /bin/bash "$USER_TO_CHECK"
+    fi
     chmod 700 $USER_HOME
     echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - $USER_TO_CHECK user created."
 
@@ -128,9 +153,4 @@ else
     echo "[WARNING] $(date +"%Y-%m-%d %H:%M:%S") - Root doesn't have authorized_keys."
 fi
 
-# Install packages
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installing packages."
-
-apt-get install -y $PACKAGES_TO_INSTALL
-
-echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Installation complete."
+echo "[INFO] $(date +"%Y-%m-%d %H:%M:%S") - Setup complete."
